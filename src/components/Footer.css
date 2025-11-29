@@ -1,0 +1,87 @@
+.footer {
+  background: #040b1d;
+  padding: 60px 50px 40px;
+  color: white;
+  font-family: sans-serif;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.footer-brand {
+  width: 250px;
+}
+
+.footer-logo {
+  background: #1b5bff;
+  width: 55px;
+  height: 55px;
+  border-radius: 12px;
+  font-size: 22px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.footer-text {
+  color: #b9c4e0;
+  margin-bottom: 15px;
+  font-size: 15px;
+}
+
+.footer-socials {
+  display: flex;
+  gap: 12px;
+}
+
+.social-icon {
+  background: #0b1a3b;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.footer-columns {
+  display: flex;
+  gap: 70px;
+}
+
+.footer-col h4 {
+  margin-bottom: 12px;
+  font-size: 17px;
+}
+
+.footer-col p {
+  margin: 6px 0;
+  color: #b7c3da;
+  cursor: pointer;
+}
+
+.footer-col p:hover {
+  color: #ffffff;
+}
+
+.footer-bottom {
+  margin-top: 40px;
+  border-top: 1px solid #1b2942;
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  color: #b7c3da;
+  font-size: 14px;
+}
+
+.email {
+  color: #4bb5ff;
+}
