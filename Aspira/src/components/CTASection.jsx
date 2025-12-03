@@ -9,9 +9,7 @@ const CTASection = () => {
                       rounded-[30px] text-center text-white 
                       shadow-[0_0_25px_rgba(0,0,0,0.2)]">
 
-        {/* Icon 
-        <div className="text-[45px] sm:text-[50px] mb-[20px]">⚡</div>
-*/}
+    
         {/* Title */}
         <h2 className="text-[32px] sm:text-[36px] md:text-[38px] font-bold mb-[10px]">
           Ready to Transform Your Career?
