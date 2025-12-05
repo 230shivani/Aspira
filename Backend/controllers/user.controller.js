@@ -1,7 +1,6 @@
-// controllers/userController.js
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");        // FIXED
 const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // adjust path if needed
+const User = require("../model/user.model");  // FIXED AND CORRECT
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "change_this_secret";
@@ -44,6 +43,37 @@ exports.register = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+/**
+ * Change Password
+ */
+exports.changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: "Old and new password are required" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // compare old password
+    const matched = await bcrypt.compare(oldPassword, user.password);
+    if (!matched) {
+      return res.status(401).json({ message: "Old password is incorrect" });
+    }
+
+    // set new password
+    user.password = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await user.save();
+
+    return res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.error("changePassword error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 /**
  * Login - returns JWT
@@ -127,14 +157,14 @@ exports.deleteUser = async (req, res) => {
 };
 
 /**
- * Upload resume (expects multer single file at req.file)
+ * Upload resume
  */
 exports.uploadResume = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
     const userId = req.params.id || req.user.id;
-    const resumeUrl = req.file.path; // change to cloud URL if using S3/GCS
+    const resumeUrl = req.file.path;
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -151,7 +181,7 @@ exports.uploadResume = async (req, res) => {
 };
 
 /**
- * Upload cover letter (expects multer single file at req.file)
+ * Upload cover letter
  */
 exports.uploadCoverLetter = async (req, res) => {
   try {
