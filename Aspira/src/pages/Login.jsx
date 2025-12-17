@@ -1,21 +1,44 @@
+// src/pages/Login.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { loginUser } from "../services/userService";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const submit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate("/");
+    setError("");
+    setLoading(true);
+
+    try {
+      await loginUser(email, password);
+      // loginUser stores token + user in localStorage (per your service)
+      navigate("/"); // redirect to home or dashboard
+    } catch (err) {
+      // parse error payload (service throws error.response?.data || error)
+      let msg = "Login failed";
+      if (!err) msg = "Login failed";
+      else if (typeof err === "string") msg = err;
+      else if (err.message) msg = err.message;
+      else if (err.error) msg = err.error;
+      else if (err?.msg) msg = err.msg;
+      else if (err?.message === undefined && err?.status === 401) msg = "Invalid credentials";
+
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)]"> {/* Header height removed */}
-      
+    <div className="relative w-full h-[calc(100vh-64px)]">
       {/* FULLSCREEN BACKGROUND IMAGE */}
       <div
         className="absolute inset-0 w-full h-full bg-cover bg-center brightness-90"
@@ -25,22 +48,16 @@ export default function Login() {
         }}
       ></div>
 
-      {/* DARK LAYER (optional for readability) */}
+      {/* DARK LAYER */}
       <div className="absolute inset-0 bg-black/40"></div>
 
-      {/* LOGIN CARD OVER IMAGE */}
+      {/* LOGIN CARD */}
       <div className="relative z-20 w-full h-full flex items-center justify-center px-4">
         <div className="w-full max-w-md bg-white/90 backdrop-blur-md border border-white/30 shadow-2xl rounded-xl p-8">
-          
-          <h1 className="text-3xl font-bold text-[#0d1425] text-center">
-            Sign In
-          </h1>
-          <p className="text-sm text-gray-600 text-center mb-6">
-            Welcome back — login to continue
-          </p>
+          <h1 className="text-3xl font-bold text-[#0d1425] text-center">Sign In</h1>
+          <p className="text-sm text-gray-600 text-center mb-6">Welcome back — login to continue</p>
 
-          <form onSubmit={submit} className="space-y-4">
-            
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* EMAIL */}
             <div>
               <label className="block text-xs text-gray-600 mb-2">Email</label>
@@ -49,6 +66,7 @@ export default function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
                 className="w-full border px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
             </div>
@@ -62,17 +80,22 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                   className="w-full border px-4 py-2.5 rounded-lg pr-10 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
                 <button
                   type="button"
                   onClick={() => setShow(!show)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  tabIndex={-1}
                 >
                   {show ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
+
+            {/* ERROR */}
+            {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
 
             {/* FORGOT LINK */}
             <div className="flex justify-end">
@@ -84,9 +107,12 @@ export default function Login() {
             {/* SUBMIT */}
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-teal-400 to-blue-600 text-white rounded-lg font-semibold shadow-md hover:opacity-95 transition"
+              disabled={loading}
+              className={`w-full py-3 text-white rounded-lg font-semibold shadow-md transition ${
+                loading ? "opacity-70 cursor-not-allowed bg-gradient-to-r from-teal-300 to-blue-400" : "bg-gradient-to-r from-teal-400 to-blue-600 hover:opacity-95"
+              }`}
             >
-              Sign In
+              {loading ? "Logging in..." : "Sign In"}
             </button>
           </form>
 
