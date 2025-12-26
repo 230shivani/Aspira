@@ -1,70 +1,122 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Aspira Project
 
-## Available Scripts
+Aspira is a full-stack web application that streamlines job applications, resume building, and cover letter generation. The project consists of two main parts:
 
-In the project directory, you can run:
+- **Aspira (Frontend):** React.js application for user interaction.
+- **Backend:** Node.js/Express.js REST API for authentication, resume, and cover letter management.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Features
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- User authentication (signup/login, JWT-based)
+- Resume builder and upload
+- Cover letter generator
+- Job listings and application tracking
+- Responsive UI with Tailwind CSS
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Project Structure
 
-### `npm run build`
+```
+Aspira/           # Frontend (React)
+  src/
+    components/   # Reusable UI components
+    pages/        # Main app pages (Home, Jobs, Login, Resume, Signup)
+    services/     # API and user service logic
+  public/         # Static assets
+  ...             # Config files (tailwind, postcss, etc.)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Backend/          # Backend (Node.js/Express)
+  config/         # DB and server config
+  controllers/    # Route handlers
+  middleware/     # Auth middleware
+  models/         # Mongoose models
+  routes/         # Express routes
+  uploads/        # Uploaded files (resumes, etc.)
+  ...             # server.js, .env, etc.
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Prerequisites
+- Node.js (v16+ recommended)
+- npm
+- MongoDB (local or Atlas)
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Getting Started
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 1. Clone the Repository
+```sh
+git clone <repo-url>
+cd aspira
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 2. Setup the Backend
+```sh
+cd Backend
+npm install
+# Create your .env file with MONGO_URI and PORT (see below)
+npm start              # or: npx nodemon server.js
+```
 
-## Learn More
+**Example .env:**
+```
+MONGO_URI=mongodb://localhost:27017/aspira
+PORT=5000
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 3. Setup the Frontend
+Open a new terminal:
+```sh
+cd Aspira
+npm install
+# Create your .env file with REACT_APP_API_URL (see below)
+npm start
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+**Example .env:**
+```
+REACT_APP_API_URL=http://localhost:5000/api
+```
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Usage
 
-### Analyzing the Bundle Size
+1. Visit [http://localhost:3000](http://localhost:3000) in your browser.
+2. Register a new account, login, and start using the platform.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+---
 
-### Making a Progressive Web App
+## API Endpoints (Backend)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- `POST   /api/users/register` — Register new user
+- `POST   /api/users/login` — Login
+- `GET    /api/users/me` — Get current user profile (auth required)
+- `PATCH  /api/users/:id` — Update user profile
+- `POST   /api/users/:id/upload/resume` — Upload resume
 
-### Advanced Configuration
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Technologies Used
 
-### Deployment
+- **Frontend:** React, Tailwind CSS, Axios
+- **Backend:** Node.js, Express, MongoDB, Mongoose, JWT, Multer
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
+## Contributing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+
+---
+
+## License
+
+MIT License
