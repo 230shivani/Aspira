@@ -6,6 +6,8 @@ import Home from "./pages/Home";
 import Resume from "./pages/Resume";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Jobs from "./pages/Jobs";
+
 
 export default function App() {
   return (
@@ -17,6 +19,7 @@ export default function App() {
           <Route path="/resume" element={<Resume />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+         <Route path="/jobs" element={<Jobs />} />
         </Routes>
       </main>
     </div>

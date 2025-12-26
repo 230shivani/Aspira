@@ -1,171 +1,163 @@
-// src/pages/Signup.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { registerUser, loginUser } from "../services/userService";
 
 export default function Signup() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [bio, setBio] = useState("");
-  const [experience, setExperience] = useState(0);
-  const [show, setShow] = useState(false);
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    bio: "",
+    experience: 0,
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+
+  const onChange = (e) =>
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+
     setError("");
     setLoading(true);
-
     try {
-      // Register
-      await registerUser({ name, email, password, bio, experience });
-
-      // Auto-login after successful signup (registerUser doesn't log in)
-      await loginUser(email, password);
-
-      // Redirect to home/dashboard
+      await registerUser(form);
+      await loginUser(form.email, form.password);
       navigate("/");
     } catch (err) {
-      let msg = "Signup failed";
-      if (!err) msg = "Signup failed";
-      else if (typeof err === "string") msg = err;
-      else if (err.message) msg = err.message;
-      else if (err.error) msg = err.error;
-      setError(msg);
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Signup failed"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)]">
-      {/* Fullscreen background */}
+    <div className="relative min-h-[calc(100vh-64px)] flex items-center justify-center px-4">
+      {/* Image Background */}
       <div
-        className="absolute inset-0 w-full h-full bg-cover bg-center brightness-90"
+        className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage:
             "url('https://images.unsplash.com/photo-1455849318743-b2233052fcff?q=80&w=1600&auto=format&fit=crop')",
         }}
       />
-
       {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-black/60" />
 
       {/* Card */}
-      <div className="relative z-20 w-full h-full flex items-center justify-center px-4">
-        <div className="w-full max-w-md bg-white/90 backdrop-blur-md border border-white/30 shadow-2xl rounded-xl p-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#0d1425] text-center">Create account</h1>
-          <p className="text-sm text-gray-600 text-center mb-6">Join us — create your free account</p>
+      <div className="relative z-10 w-full max-w-sm bg-[#0f172a]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl px-6 py-5">
+        <h1 className="text-xl font-semibold text-center text-white">
+          Create account
+        </h1>
+        <p className="text-xs text-gray-400 text-center mb-4">
+          Join Aspira for free
+        </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className="block text-xs text-gray-600 mb-2">Full name</label>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <Input label="Name" name="name" value={form.name} onChange={onChange} />
+          <Input
+            label="Email"
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={onChange}
+          />
+
+          {/* Password */}
+          <div>
+            <label className="block text-[11px] text-gray-400 mb-1">
+              Password
+            </label>
+            <div className="relative">
               <input
-                type="text"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={form.password}
+                onChange={onChange}
                 required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
                 disabled={loading}
-                className="w-full border px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                placeholder="Your full name"
+                className="w-full bg-[#020617] border border-white/10 text-white px-3 py-2 rounded-md text-sm pr-9 focus:ring-1 focus:ring-blue-500 outline-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
+          </div>
 
-            {/* Email */}
-            <div>
-              <label className="block text-xs text-gray-600 mb-2">Email</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                className="w-full border px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                placeholder="you@example.com"
-              />
-            </div>
+          {/* Bio */}
+          <div>
+            <label className="block text-[11px] text-gray-400 mb-1">
+              Bio
+            </label>
+            <textarea
+              rows={2}
+              name="bio"
+              value={form.bio}
+              onChange={onChange}
+              className="w-full bg-[#020617] border border-white/10 text-white px-3 py-2 rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none"
+            />
+          </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-xs text-gray-600 mb-2">Password</label>
-              <div className="relative">
-                <input
-                  type={show ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  className="w-full border px-4 py-2.5 rounded-lg pr-10 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  placeholder="Create a password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShow((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                  aria-label={show ? "Hide password" : "Show password"}
-                  tabIndex={-1}
-                >
-                  {show ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+          <Input
+            label="Experience (yrs)"
+            type="number"
+            name="experience"
+            value={form.experience}
+            onChange={onChange}
+          />
 
-            {/* Bio */}
-            <div>
-              <label className="block text-xs text-gray-600 mb-2">Short bio</label>
-              <textarea
-                required
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                disabled={loading}
-                className="w-full border px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                placeholder="A short intro about yourself"
-                rows={3}
-              />
-            </div>
+          {error && (
+            <p className="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded">
+              {error}
+            </p>
+          )}
 
-            {/* Experience */}
-            <div>
-              <label className="block text-xs text-gray-600 mb-2">Years of experience</label>
-              <input
-                type="number"
-                min={0}
-                value={experience}
-                onChange={(e) => setExperience(Number(e.target.value))}
-                disabled={loading}
-                className="w-full border px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                placeholder="0"
-              />
-            </div>
+          <button
+            disabled={loading}
+            className={`w-full py-2 rounded-md text-sm font-semibold transition ${
+              loading
+                ? "bg-blue-500/40 cursor-not-allowed"
+                : "bg-gradient-to-r from-teal-400 to-blue-600 hover:opacity-90"
+            }`}
+          >
+            {loading ? "Creating..." : "Create account"}
+          </button>
+        </form>
 
-            {/* Error */}
-            {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-3 text-white rounded-lg font-semibold shadow-md transition ${
-                loading ? "opacity-70 cursor-not-allowed bg-gradient-to-r from-teal-300 to-blue-400" : "bg-gradient-to-r from-teal-400 to-blue-600 hover:opacity-95"
-              }`}
-            >
-              {loading ? "Creating account..." : "Create account"}
-            </button>
-          </form>
-
-          <p className="mt-5 text-center text-sm text-white">
-            Already have an account?{" "}
-            <Link to="/login" className="text-teal-300 font-semibold">
-              Sign in
-            </Link>
-          </p>
-        </div>
+        <p className="mt-4 text-center text-xs text-gray-400">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-400 font-medium">
+            Sign in
+          </Link>
+        </p>
       </div>
+    </div>
+  );
+}
+
+function Input({ label, ...props }) {
+  return (
+    <div>
+      <label className="block text-[11px] text-gray-400 mb-1">{label}</label>
+      <input
+        {...props}
+        className="w-full bg-[#020617] border border-white/10 text-white px-3 py-2 rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none"
+      />
     </div>
   );
 }
