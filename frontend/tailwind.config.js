@@ -3,10 +3,8 @@ module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
-
   ],
   theme: {
-<<<<<<< HEAD
     extend: {
       colors: {
         primary: "var(--primary)",
@@ -21,14 +19,6 @@ module.exports = {
         jakarta: ["Plus Jakarta Sans", "sans-serif"],
       },
     },
-=======
-    extend: {},
->>>>>>> 818a2ce4ef2a1b8b7b5de858aed75ad4f0674d4c
   },
   plugins: [],
 }
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 818a2ce4ef2a1b8b7b5de858aed75ad4f0674d4c

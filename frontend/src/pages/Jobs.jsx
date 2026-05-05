@@ -54,7 +54,7 @@ const mockJobs = [
   {
     id: 3,
     title: "Marketing Growth Lead",
-    company: "AI CarrerHub Global",
+    company: "AI CareerHub Global",
     logoColor: "bg-teal-500",
     location: "London, UK",
     type: "Full-time",
@@ -62,7 +62,7 @@ const mockJobs = [
     posted: "1d ago",
     match: 87,
     category: "Marketing",
-    description: "Drive global adoption of AI CarrerHub's career tools. Experience with viral loops and community-led growth is a major plus."
+    description: "Drive global adoption of AI CareerHub's career tools. Experience with viral loops and community-led growth is a major plus."
   },
   {
     id: 4,

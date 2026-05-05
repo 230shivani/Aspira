@@ -10,10 +10,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log(`${req.method} ${req.path}`);
+//   next();
+// });
 
 const mongooseOptions = {
   maxPoolSize: 10,
@@ -34,8 +34,16 @@ mongoose.connect(process.env.MONGO_URI, mongooseOptions)
   });
 
 const interviewRoutes = require("./routes/interview.routes");
+const userRoutes = require("./routes/user.routes");
+const jobRoutes = require("./routes/job.routes");
+const coverLetterRoutes = require("./routes/coverletter.routes");
+
 
 app.use("/api/interview", interviewRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/jobs", jobRoutes);
+app.use("/api/coverletter", coverLetterRoutes);
+
 
 // Start server after or in parallel with MongoDB
 function startServer() {
@@ -44,3 +52,5 @@ function startServer() {
     console.log(`Server running on PORT:${PORT}`);
   });
 }
+
+// Server initialized

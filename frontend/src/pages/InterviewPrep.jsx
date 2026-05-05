@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -71,7 +70,7 @@ export default function InterviewPrep() {
 
     fetchQuestions();
     fetchAnalytics();
-  }, [activeTab, searchQuery]); // Removed userId to keep dependency array stable
+  }, [activeTab, searchQuery]);
 
   const filteredQuestions = questions;
 
@@ -97,7 +96,7 @@ export default function InterviewPrep() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight"
           >
-            AI CarrerHub <span className="text-gradient">Interview Lab</span>
+            AI CareerHub <span className="text-gradient">Interview Lab</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -322,7 +321,7 @@ export default function InterviewPrep() {
                 setSessionAnalysis(data);
                 setIsSessionActive(false);
                 setShowAnalytics(true);
-                fetchAnalytics(); // Refresh the progress sidebar
+                fetchAnalytics(); 
               }}
               userId={userId}
             />
@@ -364,12 +363,8 @@ function AnalyticsModal({ onClose, data, userId }) {
       const fetchLatest = async () => {
         setLoading(true);
         try {
-          // Fetch all assessments and take the latest one
           const history = await interviewService.getAnalytics(userId);
           if (history && history.history && history.history.length > 0) {
-            // In a real app, you might want a specific 'getLatest' endpoint
-            // For now, we'll use the overall stats or fetch again if needed
-            // But let's assume we want to show the current session or a mock of the latest
             setAnalyticsData({
               overallScore: history.overallScore,
               categories: [
@@ -407,8 +402,6 @@ function AnalyticsModal({ onClose, data, userId }) {
   };
 
   const displayData = analyticsData || defaultData;
-  
-  // Ensure categories have colors
   const colors = ["bg-blue-500", "bg-purple-500", "bg-emerald-500", "bg-orange-500", "bg-pink-500"];
   const formattedCategories = displayData.categories.map((cat, i) => ({
     ...cat,
@@ -439,7 +432,6 @@ function AnalyticsModal({ onClose, data, userId }) {
 
       <div className="p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {/* Main Score Card */}
           <div className="lg:col-span-1 glass bg-gradient-to-br from-primary/20 to-secondary/20 p-8 rounded-[32px] border border-primary/20 flex flex-col items-center justify-center text-center">
             <h4 className="text-white/70 text-sm font-bold uppercase tracking-widest mb-4">Overall Readiness</h4>
             <div className="relative w-40 h-40 flex items-center justify-center mb-6">
@@ -499,7 +491,6 @@ function AnalyticsModal({ onClose, data, userId }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {/* Strengths */}
           <div className="p-8 rounded-[32px] bg-emerald-500/5 border border-emerald-500/20">
             <h4 className="text-emerald-400 font-bold mb-6 flex items-center gap-2">
               <CheckCircle2 size={20} /> Key Strengths
@@ -514,7 +505,6 @@ function AnalyticsModal({ onClose, data, userId }) {
             </div>
           </div>
 
-          {/* Improvements */}
           <div className="p-8 rounded-[32px] bg-orange-500/5 border border-orange-500/20">
             <h4 className="text-orange-400 font-bold mb-6 flex items-center gap-2">
               <Zap size={20} /> Focus Areas
@@ -542,7 +532,7 @@ function AnalyticsModal({ onClose, data, userId }) {
 
 function MockInterviewSimulation({ onClose, onAnalysisComplete, userId }) {
   const [messages, setMessages] = useState([
-    { role: "ai", text: "Welcome to AI CarrerHub Interview Lab. I'm Sarah Mitchell, your AI interviewer today. Are you ready to begin our session?" }
+    { role: "ai", text: "Welcome to AI CareerHub Interview Lab. I'm Sarah Mitchell, your AI interviewer today. Are you ready to begin our session?" }
   ]);
   const [userInput, setUserInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -552,29 +542,31 @@ function MockInterviewSimulation({ onClose, onAnalysisComplete, userId }) {
   const [isCamOn, setIsCamOn] = useState(true);
   const [hasJoined, setHasJoined] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState("idle");
+  const [camError, setCamError] = useState(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState(null);
 
   const scrollRef = useRef(null);
-
-  const videoRef = useRef(null);
   const setupVideoRef = useRef(null);
+  const sessionVideoRef = useRef(null);
 
+  // Stop stream when component unmounts
   useEffect(() => {
-    requestPermission();
     return () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [stream]);
 
+  // Handle stream assignment manually to avoid React lifecycle issues
   useEffect(() => {
     if (stream) {
       if (!hasJoined && setupVideoRef.current) {
         setupVideoRef.current.srcObject = stream;
-      } else if (hasJoined && videoRef.current) {
-        videoRef.current.srcObject = stream;
+      }
+      if (hasJoined && sessionVideoRef.current) {
+        sessionVideoRef.current.srcObject = stream;
       }
     }
   }, [stream, hasJoined]);
@@ -582,15 +574,44 @@ function MockInterviewSimulation({ onClose, onAnalysisComplete, userId }) {
   const requestPermission = async () => {
     try {
       setPermissionStatus("pending");
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      setCamError(null);
+      
+      let mediaStream;
+      try {
+        // Try getting both first
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      } catch (err) {
+        console.warn("Camera/Mic error:", err);
+        if (err.name === 'NotFoundError' || err.name === 'NotReadableError') {
+          try {
+            // Fallback 1: Try just video (maybe they have no microphone)
+            mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          } catch (err2) {
+            // Fallback 2: Try just audio (maybe they have no camera)
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          }
+        } else {
+          throw err;
+        }
+      }
+
       setStream(mediaStream);
+      setIsCamOn(mediaStream.getVideoTracks().length > 0);
+      setIsMicOn(mediaStream.getAudioTracks().length > 0);
+      
       setPermissionStatus("granted");
       return true;
     } catch (err) {
+      console.error("Permission fully denied:", err);
       setPermissionStatus("denied");
+      setCamError(err.name === 'NotFoundError' ? 'No Camera Found' : err.name === 'NotAllowedError' ? 'Camera Blocked' : 'Camera Error');
       return false;
     }
   };
+
+  useEffect(() => {
+    requestPermission();
+  }, []);
 
   const handleJoin = async () => {
     if (permissionStatus === "granted" || permissionStatus === "denied") {
@@ -599,37 +620,6 @@ function MockInterviewSimulation({ onClose, onAnalysisComplete, userId }) {
       const success = await requestPermission();
       if (success) setHasJoined(true);
     }
-  };
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-    // Speak the last message if it's from AI
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage && lastMessage.role === "ai" && hasJoined) {
-      speakMessage(lastMessage.text);
-    }
-  }, [messages, isTyping, hasJoined]);
-
-  const speakMessage = (text) => {
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Select a professional female voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const femaleVoice = voices.find(v => v.name.includes("Google US English") || v.name.includes("Female") || v.name.includes("Zira"));
-    if (femaleVoice) utterance.voice = femaleVoice;
-    
-    utterance.pitch = 1.1;
-    utterance.rate = 0.95;
-    
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    
-    window.speechSynthesis.speak(utterance);
   };
 
   const toggleMic = () => {
@@ -650,6 +640,29 @@ function MockInterviewSimulation({ onClose, onAnalysisComplete, userId }) {
         setIsCamOn(videoTrack.enabled);
       }
     }
+  };
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.role === "ai" && hasJoined) {
+      speakMessage(lastMessage.text);
+    }
+  }, [messages, isTyping, hasJoined]);
+
+  const speakMessage = (text) => {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const femaleVoice = voices.find(v => v.name.includes("Google US English") || v.name.includes("Female") || v.name.includes("Zira"));
+    if (femaleVoice) utterance.voice = femaleVoice;
+    utterance.pitch = 1.1;
+    utterance.rate = 0.95;
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utterance);
   };
 
   const handleSendMessage = async (e) => {
@@ -708,9 +721,10 @@ function MockInterviewSimulation({ onClose, onAnalysisComplete, userId }) {
           {permissionStatus === "granted" ? (
             <video ref={setupVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
           ) : (
-            <div className="text-center">
+            <div className="text-center p-2">
               <Video size={36} className="mx-auto text-text-muted mb-2 opacity-20" />
-              <p className="text-[10px] font-bold text-text-muted">Camera Needed</p>
+              <p className="text-[10px] font-bold text-text-muted">{camError || "Camera Needed"}</p>
+              {camError === 'Camera Blocked' && <p className="text-[9px] text-red-400 mt-1 px-4 leading-tight">Please check your browser settings (top left corner) to allow camera</p>}
             </div>
           )}
         </div>
@@ -742,17 +756,23 @@ function MockInterviewSimulation({ onClose, onAnalysisComplete, userId }) {
         </div>
 
         <div className="relative w-full aspect-video md:aspect-[4/3] max-h-[400px] rounded-3xl overflow-hidden bg-black/40 border border-white/10 group shadow-2xl">
-          {stream && isCamOn ? (
-            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-text-muted">
+          <video 
+            ref={sessionVideoRef} 
+            autoPlay 
+            playsInline 
+            muted 
+            className={`w-full h-full object-cover ${(!stream || !isCamOn) ? 'hidden' : ''}`} 
+          />
+          {(!stream || !isCamOn) && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-text-muted p-4 text-center">
               <Video size={24} className="mb-4 opacity-20" />
-              <p className="text-xs font-semibold opacity-60">Camera is paused</p>
+              <p className="text-xs font-semibold opacity-60">{camError || "Camera is paused"}</p>
+              {camError === 'Camera Blocked' && <p className="text-[10px] text-red-400/80 mt-2">Browser blocked access.</p>}
             </div>
           )}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300">
             <button onClick={toggleMic} className={`w-10 h-10 rounded-full flex items-center justify-center ${isMicOn ? "bg-white/10" : "bg-red-500"} text-white`}><Mic size={18} /></button>
-            <button onClick={toggleCam} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white"><Video size={18} /></button>
+            <button onClick={toggleCam} className={`w-10 h-10 rounded-full flex items-center justify-center ${isCamOn ? "bg-white/10" : "bg-red-500"} text-white`}><Video size={18} /></button>
             <button onClick={onClose} className="w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center"><X size={18} /></button>
           </div>
         </div>
@@ -770,438 +790,10 @@ function MockInterviewSimulation({ onClose, onAnalysisComplete, userId }) {
                 <div className="w-1 h-5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></div>
                 <div className="w-1 h-3 bg-secondary rounded-full animate-bounce [animation-delay:0.3s]"></div>
               </>
-=======
-import React, { useState, useRef } from "react";
-import { Upload, Loader, AlertCircle, CheckCircle, Download } from "lucide-react";
-import { jsPDF } from "jspdf";
-
-const InterviewPrep = () => {
-  const fileInputRef = useRef(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [activeTab, setActiveTab] = useState("resume"); // "resume" or "topic"
-  
-  // Resume-based generation state
-  const [resumeFile, setResumeFile] = useState(null);
-  const [uploadedFileName, setUploadedFileName] = useState("");
-  
-  // Topic-based generation state
-  const [jobRole, setJobRole] = useState("");
-  const [experience, setExperience] = useState("");
-  const [topics, setTopics] = useState("");
-  
-  // Shared state
-  const [numberOfQuestions, setNumberOfQuestions] = useState(10);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [questions, setQuestions] = useState([]);
-
-  const handleFileSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.type !== "application/pdf") {
-        setError("Please upload a PDF file");
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setError("File size should be less than 5MB");
-        return;
-      }
-      setResumeFile(file);
-      setUploadedFileName(file.name);
-      setError("");
-    }
-  };
-
-  const handleGenerateQuestions = async () => {
-    if (!resumeFile) {
-      setError("Please upload a resume PDF first");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("resumeFile", resumeFile);
-    formData.append("numberOfQuestions", numberOfQuestions);
-
-    try {
-      setIsLoading(true);
-      setError("");
-      setSuccess("");
-      console.log("Sending request to backend...");
-      const response = await fetch(
-        "http://localhost:5000/api/interview/generate-from-resume",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      console.log("Response received:", response.status);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to generate questions");
-      }
-
-      const data = await response.json();
-      setQuestions(data.questions || []);
-      setSuccess("Questions generated successfully!");
-    } catch (err) {
-      console.error("Error:", err);
-      setError(err.message || "Failed to generate questions. Please try again.");
-      setQuestions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGenerateFromTopic = async () => {
-    if (!jobRole || !experience || !topics || !numberOfQuestions) {
-      setError("Please fill all fields: Job Role, Experience, and Topics");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError("");
-      setSuccess("");
-      console.log("Generating questions from topic...");
-      const response = await fetch(
-        "http://localhost:5000/api/interview/generate",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            role: jobRole,
-            experience: experience,
-            topicsToFocus: topics,
-            numberOfQuestions: numberOfQuestions,
-          }),
-        }
-      );
-
-      console.log("Response received:", response.status);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to generate questions");
-      }
-
-      const data = await response.json();
-      setQuestions(data.questions || []);
-      setSuccess("Questions generated successfully!");
-    } catch (err) {
-      console.error("Error:", err);
-      setError(err.message || "Failed to generate questions. Please try again.");
-      setQuestions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const downloadQuestions = () => {
-    if (questions.length === 0) return;
-
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
-    const maxWidth = pageWidth - 2 * margin;
-    let yPosition = 20;
-
-    // Add title
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text("Interview Questions & Answers", pageWidth / 2, yPosition, { align: "center" });
-    yPosition += 15;
-
-    // Add metadata
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, yPosition);
-    yPosition += 8;
-    doc.text(`Total Questions: ${questions.length}`, margin, yPosition);
-    yPosition += 15;
-
-    // Add questions and answers
-    questions.forEach((item, idx) => {
-      // Check if we need a new page
-      if (yPosition > pageHeight - 20) {
-        doc.addPage();
-        yPosition = 20;
-      }
-
-      // Question
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      const questionText = `Q${idx + 1}: ${item.question}`;
-      const questionLines = doc.splitTextToSize(questionText, maxWidth);
-      doc.text(questionLines, margin, yPosition);
-      yPosition += questionLines.length * 6 + 2;
-
-      // Answer
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
-      const answerText = `Answer: ${item.answer}`;
-      const answerLines = doc.splitTextToSize(answerText, maxWidth);
-      doc.text(answerLines, margin, yPosition);
-      yPosition += answerLines.length * 6 + 10;
-    });
-
-    // Save PDF
-    doc.save("interview-questions.pdf");
-  };
-
-  return (
-    <div className="bg-[#06122b] text-white min-h-screen">
-
-      <div className="py-16 px-6 md:px-20">
-        <h1 className="text-[34px] md:text-[38px] font-extrabold mb-6 text-center">
-          Interview Preparation
-        </h1>
-
-        <p className="text-[17px] md:text-[18px] text-[#b5c7f7] text-center max-w-2xl mx-auto mb-12">
-          Generate AI-powered interview questions in two ways: upload your resume or specify a job role and topics.
-        </p>
-
-        {/* Tabs */}
-        <div className="flex justify-center gap-4 mb-10">
-          <button
-            onClick={() => {
-              setActiveTab("resume");
-              setError("");
-              setSuccess("");
-            }}
-            className={`px-8 py-3 rounded-lg font-semibold transition-all ${
-              activeTab === "resume"
-                ? "bg-gradient-to-r from-[#3a8cff] to-[#8b54ff] text-white shadow-lg"
-                : "bg-[#0b1a3a] text-[#b5c7f7] border border-[#1a2b4f] hover:border-[#3a8cff]"
-            }`}>
-            From Resume
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("topic");
-              setError("");
-              setSuccess("");
-            }}
-            className={`px-8 py-3 rounded-lg font-semibold transition-all ${
-              activeTab === "topic"
-                ? "bg-gradient-to-r from-[#3a8cff] to-[#8b54ff] text-white shadow-lg"
-                : "bg-[#0b1a3a] text-[#b5c7f7] border border-[#1a2b4f] hover:border-[#3a8cff]"
-            }`}>
-            From Topic
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* Form Section */}
-          {activeTab === "resume" && (
-            <div className="bg-[#0b1a3a] p-8 rounded-2xl shadow-lg border border-[#1a2b4f]">
-              <h2 className="text-xl font-bold mb-6">Generate from Resume</h2>
-
-              <div className="space-y-6">
-                <div className="border-2 border-dashed border-[#3a8cff] rounded-xl p-8 text-center cursor-pointer hover:bg-[#0f2555] transition"
-                  onClick={() => fileInputRef.current?.click()}>
-                  <Upload size={32} className="mx-auto mb-4 text-[#3a8cff]" />
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <p className="text-[#b5c7f7] font-medium">
-                    {uploadedFileName ? (
-                      <span className="text-green-400">Resume selected: {uploadedFileName}</span>
-                    ) : (
-                      <>Click to upload your resume or drag and drop<br/>
-                      <span className="text-sm text-[#8b9cc9]">PDF files only, max 5MB</span></>
-                    )}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-3 text-[#cfd9f7]">
-                    Number of Questions
-                  </label>
-                  <select
-                    value={numberOfQuestions}
-                    onChange={(e) => setNumberOfQuestions(parseInt(e.target.value))}
-                    className="w-full bg-[#0f1f45] border border-[#1e325d] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#3a8cff]">
-                    {[5, 10, 15, 20, 25].map((num) => (
-                      <option key={num} value={num}>
-                        {num} Questions
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {error && (
-                  <div className="bg-red-500/15 border border-red-500/30 rounded-lg p-4 flex gap-3">
-                    <AlertCircle size={20} className="text-red-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-red-200 text-sm">{error}</p>
-                  </div>
-                )}
-
-                {success && (
-                  <div className="bg-green-500/15 border border-green-500/30 rounded-lg p-4 flex gap-3">
-                    <CheckCircle size={20} className="text-green-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-green-200 text-sm">{success}</p>
-                  </div>
-                )}
-
-                <button
-                  onClick={handleGenerateQuestions}
-                  disabled={isLoading || !resumeFile}
-                  className={`w-full py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
-                    isLoading || !resumeFile
-                      ? "bg-[#3a8cff]/50 text-white/50 cursor-not-allowed"
-                      : "bg-gradient-to-r from-[#3a8cff] to-[#8b54ff] text-white hover:opacity-90"
-                  }`}>
-                  {isLoading ? (
-                    <>
-                      <Loader size={20} className="animate-spin" />
-                      Generating Questions...
-                    </>
-                  ) : (
-                    "Generate Interview Questions"
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Topic-based Form */}
-          {activeTab === "topic" && (
-            <div className="bg-[#0b1a3a] p-8 rounded-2xl shadow-lg border border-[#1a2b4f]">
-              <h2 className="text-xl font-bold mb-6">Generate from Topic</h2>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold mb-3 text-[#cfd9f7]">
-                    Job Role / Position *
-                  </label>
-                  <input
-                    type="text"
-                    value={jobRole}
-                    onChange={(e) => setJobRole(e.target.value)}
-                    placeholder="e.g., Senior Full Stack Developer"
-                    className="w-full bg-[#0f1f45] border border-[#1e325d] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#3a8cff]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-3 text-[#cfd9f7]">
-                    Years of Experience *
-                  </label>
-                  <input
-                    type="text"
-                    value={experience}
-                    onChange={(e) => setExperience(e.target.value)}
-                    placeholder="e.g., 5 years"
-                    className="w-full bg-[#0f1f45] border border-[#1e325d] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#3a8cff]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-3 text-[#cfd9f7]">
-                    Topics to Focus On *
-                  </label>
-                  <textarea
-                    value={topics}
-                    onChange={(e) => setTopics(e.target.value)}
-                    placeholder="e.g., React, Node.js, MongoDB, System Design&#10;(Comma or newline separated)"
-                    className="w-full bg-[#0f1f45] border border-[#1e325d] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#3a8cff] resize-none h-24"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-3 text-[#cfd9f7]">
-                    Number of Questions
-                  </label>
-                  <select
-                    value={numberOfQuestions}
-                    onChange={(e) => setNumberOfQuestions(parseInt(e.target.value))}
-                    className="w-full bg-[#0f1f45] border border-[#1e325d] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#3a8cff]">
-                    {[5, 10, 15, 20, 25].map((num) => (
-                      <option key={num} value={num}>
-                        {num} Questions
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {error && (
-                  <div className="bg-red-500/15 border border-red-500/30 rounded-lg p-4 flex gap-3">
-                    <AlertCircle size={20} className="text-red-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-red-200 text-sm">{error}</p>
-                  </div>
-                )}
-
-                {success && (
-                  <div className="bg-green-500/15 border border-green-500/30 rounded-lg p-4 flex gap-3">
-                    <CheckCircle size={20} className="text-green-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-green-200 text-sm">{success}</p>
-                  </div>
-                )}
-
-                <button
-                  onClick={handleGenerateFromTopic}
-                  disabled={isLoading || !jobRole || !experience || !topics}
-                  className={`w-full py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
-                    isLoading || !jobRole || !experience || !topics
-                      ? "bg-[#3a8cff]/50 text-white/50 cursor-not-allowed"
-                      : "bg-gradient-to-r from-[#3a8cff] to-[#8b54ff] text-white hover:opacity-90"
-                  }`}>
-                  {isLoading ? (
-                    <>
-                      <Loader size={20} className="animate-spin" />
-                      Generating Questions...
-                    </>
-                  ) : (
-                    "Generate Interview Questions"
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Generated Questions Display Section */}
-          <div className="bg-[#0b1a3a] p-8 rounded-2xl shadow-lg border border-[#1a2b4f]">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Generated Questions</h2>
-              {questions.length > 0 && (
-                <button
-                  onClick={downloadQuestions}
-                  className="flex items-center gap-2 bg-[#8b54ff]/20 text-[#b5a4ff] px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-[#8b54ff]/30 transition">
-                  <Download size={16} />
-                  Download
-                </button>
-              )}
-            </div>
-
-            {questions.length === 0 ? (
-              <div className="bg-[#0f1f45] rounded-xl p-8 text-center border border-[#1e325d]">
-                <p className="text-[#8b9cc9]">No questions generated yet. Select a mode and click the generate button to get started.</p>
-              </div>
-            ) : (
-              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-3">
-                {questions.map((q, index) => (
-                  <div key={index} className="bg-[#0f1f45] rounded-lg p-5 border border-[#1e325d] hover:border-[#3a8cff]/50 transition">
-                    <h3 className="font-semibold text-[#cfd9f7] mb-3 text-sm">
-                      Question {index + 1}: {q.question}
-                    </h3>
-                    <p className="text-[#a8b8d8] text-sm leading-relaxed">{q.answer}</p>
-                  </div>
-                ))}
-              </div>
->>>>>>> 818a2ce4ef2a1b8b7b5de858aed75ad4f0674d4c
             )}
           </div>
         </div>
       </div>
-<<<<<<< HEAD
 
       <div className="md:w-1/2 flex flex-col bg-[#0a101f]">
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
@@ -1265,10 +857,3 @@ const InterviewPrep = () => {
     </motion.div>
   );
 }
-=======
-    </div>
-  );
-};
-
-export default InterviewPrep;
->>>>>>> 818a2ce4ef2a1b8b7b5de858aed75ad4f0674d4c

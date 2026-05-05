@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
-const { authenticate } = require("../middleware/auth.middleware"); 
+const authenticate = require("../middleware/auth.middleware");
 const multer = require("multer");
 
 // Simple local storage for dev. In production, use S3/GCS/Cloudinary.
