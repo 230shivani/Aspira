@@ -1,14 +1,7 @@
 const mongoose = require("mongoose");
 
 const assesmentSchema = new mongoose.Schema({
-    
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-    },
-
-    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
@@ -27,13 +20,13 @@ const assesmentSchema = new mongoose.Schema({
         }
     ],
 
-    category: {                        // e.g. technical, management, hr
+    category: {                        // e.g. technical, management, hr, behavioral
         type: String,
-        enum: ["technical", "management", "hr"],
+        enum: ["technical", "management", "hr", "behavioral"],
         required: true,
     },
 
-    improvementTips: {                // Ai generated tips for improvent
+    improvementTips: {                // AI generated tips for improvement
         type: String,
         required: false,
     },
