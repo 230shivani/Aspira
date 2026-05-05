@@ -28,7 +28,6 @@ exports.saveAssessment = async (req, res) => {
     
     const newAssessment = new Assessment({
       userId,
-      user: userId, // Matching the existing model's redundancy
       score,
       questions,
       category,
