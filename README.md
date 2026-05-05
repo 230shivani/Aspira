@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # 🚀 AI CareerHub: AI-Powered Career Intelligence Platform
 
 **AI CareerHub** is a state-of-the-art full-stack platform designed to revolutionize career preparation. By leveraging cutting-edge AI models (Groq Llama 3 & Google Gemini), it provides real-time interview simulations, deep performance analysis, and automated career tools.
